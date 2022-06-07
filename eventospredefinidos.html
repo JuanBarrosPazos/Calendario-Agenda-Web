@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Administracion de Eventos Predefinidos</title>
+
+    <!-- Scripts CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/datatables.min.css">
+    <link rel="stylesheet" href="css/bootstrap-clockpicker.css">
+
+    <!-- Scripts JS -->
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/datatables.min.js"></script>
+    <script src="js/bootstrap-clockpicker.js"></script>
+    <script src="js/moment-with-locales.js"></script>
+
+    <style>
+      .MyButtonClose {  display: block;
+                        width: auto;
+                        margin-left: 90%;
+                        float: right !important;
+                        background-color: #ec0332 !important;
+                        font-size: 1.2em;
+                        color: #f8bd3d !important; 
+                        border-top: 1px solid #ff1c49 !important;
+                        border-left: 1px solid #ff1c49 !important;
+                        border-bottom: 1px solid #660101 !important;
+                        border-right: 1px solid #660101 !important;
+                        border-radius: 8px !important; 
+                        font-weight: bold !important;
+                        padding: 0.1em 0.6em;
+                      }
+      .MyButtonClose:hover { 
+                        color: #ec0332 !important; 
+                        border-top: 1px solid #a77200 !important;
+                        border-left: 1px solid #a77200 !important;
+                        border-bottom: 1px solid #f8bd3d !important;
+                        border-right: 1px solid #f8bd3d !important;
+                      }
+      .MyButtonCancel{
+                        background-color: #ffaf04 !important;
+                      }
+      .MyButtonClose:hover, .MyButtonCancel:hover{
+                        background-color: #e49c01 !important;
+                      }
+
+    </style>
+
+  </head>
+  <body>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <h2 style="text-align:center"> Administracion de eventos predefinidos </h2>
+          <table class="table table-striped table-bordered table-hover" style=" border-top: 1px solid #343434 !important;" id="tabla1">
+            <thead>
+              <tr style="text-align: center;">
+                <th>ID</th>
+                <th>Titulo</th>
+                <th>Color Texto</th>
+                <th>Color Fondo</th>
+                <th>Hora Inicio</th>
+                <th>Hora Fin</th>
+                <th>Modificar</th>
+                <th>Borrar Este</th>
+                <th>Borrar Todos</th>
+              </tr>
+            </thead>
+          </table>
+
+          <div style="text-align:center">
+            <button type="button" id="BotonAgregar" class="btn btn-success"> Agregar Evento Predefinido</button>
+            <button type="button" id="BotonSalir" class="btn btn-success">Regresar al Calendario</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario para agragar eventos predefinidos -->
+    <div class="modal fade" id="FormularioEventosPredefinidos" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <button type="button" class="close MyButtonClose" data-bs-dismiss="modal" aria-label="close">
+              <span aria-hidden="true">X</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <input type="hidden" id="id">
+            <input type="hidden" id="OldTitulo">
+            <div class="form-row">
+              <div class="form-group col-12">
+                <label>Evento Predefinido:</label>
+                <input type="text" id="Titulo" name="Titulo" class="form-control" placeholder="">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Color Fondo:</label>
+              <input type="color" value="#3788D8" id="ColorFondo" class="form-control" style="height:36px">
+            </div>
+            <div class="form-group">
+              <label>Color Texto:</label>
+              <input type="color" value="#FFFFFF" id="ColorTexto" class="form-control" style="height:36px">
+            </div>
+            <div class="form-group">
+              <label>Hora de Inicio:</label>
+              <div class="input-group clockpicker" data-autoclose="true">
+                <input type="text" id="HoraInicio" class="form-control" autocomplete="off">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Hora de Fin:</label>
+              <div class="input-group clockpicker" data-autoclose="true">
+                <input type="text" id="HoraFin" class="form-control" autocomplete="off">
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" id="BotonConfirmarAgregar" class="btn btn-success">Confirmar</button>
+            <button type="submit" id="BotonModifEventPre" class="btn btn-success">Modificar Este</button>
+            <button type="submit" id="BotonModifEventPreRel" class="btn btn-success">Modificar Todos</button>
+            <button type="button" class="btn btn-success MyButtonCancel" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script>
+
+      document.addEventListener('DOMContentLoaded', function () {
+
+        $('.clockpicker').clockpicker();
+
+        let tabla1 = $('#tabla1').DataTable({
+          "ajax":{
+            url: 'datoseventospredefinidos.php?accion=listar',
+            dataSrc: ""
+          },
+          "columns":[{
+            "data": "id"
+          },
+          {
+            "data": "titulo"
+          },
+          {
+            "data": "colortexto"
+          },
+          {
+            "data": "colorfondo"
+          },
+          {
+            "data": "horainicio"
+          },
+          {
+            "data": "horafin"
+          },
+          {
+            "data": null,
+            "orderable": false
+          },
+          {
+            "data": null,
+            "orderable": false
+          },
+          {
+            "data": null,
+            "orderable": false
+          }
+          ],
+          columnDefs: [{
+            targets: -3,
+            className: 'dt-body-center',
+            "defaultContent": "<button class='btn btn-sm btn-success botonmodificar'>Modificar</button>",
+            data: null
+          },
+          {
+            targets: -2,
+            className: 'dt-body-center',
+            "defaultContent": "<button class='btn btn-sm btn-danger botonborrar'>Borrar Este</button>",
+            data: null
+          },
+          {
+            targets: -1,
+            className: 'dt-body-center',
+            "defaultContent": "<button class='btn btn-sm btn-danger botonborrarRel'>Borrar Todos</button>",
+            data: null
+          },
+          {
+            targets: 0,
+            className: 'dt-body-center'
+          },
+          {
+            targets: 1,
+            className: 'dt-body-center'
+          },
+          {
+            targets: 2,
+            className: ''
+          },
+          {
+            targets: 4,
+            className: 'dt-body-center'
+          },
+          {
+            targets: 5,
+            className: 'dt-body-center'
+          }],
+          'rowCallback': function (row, data, index){
+            $(row).find('td:eq(1)').css('color', data.colortexto);
+            $(row).find('td:eq(1)').css('background-color', data.colorfondo);
+          },
+          "languaje": {
+            "url": "datatables/spanish.json"
+          },
+          "lengthMenu": [
+            [10, 25, 50, -1, -2, -3],
+            [10, 25, 50, "Todos"]
+
+          ],
+        });
+
+        $('#tabla1 tbody').on('click', 'button.botonborrar', function(){
+            let registro = tabla1.row($(this).parents('tr')).data();
+          if (confirm("BORRARAS EL EVENTO PREDEFINIDO "+registro.titulo+"!!!")) {
+            borrarRegistro(registro);
+          }else{ }
+        });
+
+        $('#tabla1 tbody').on('click', 'button.botonborrarRel', function(){
+            let registro = tabla1.row($(this).parents('tr')).data();
+          if (confirm("BORRARAS EL EVENTO "+registro.titulo+" Y TODOS LOS RELACIONADOS EL CALENDARIO!!!")) {
+            borrarRegistroRel(registro);
+          }else{ }
+        });
+        $('#tabla1 tbody').on('click', 'button.botonmodificar', function(){
+          $('#BotonConfirmarAgregar').hide(); 
+          $('#BotonModifEventPre').show();
+          let registro = tabla1.row($(this).parents('tr')).data();
+          recuperarRegistro(registro.id);
+          //$("#FormularioEventosPredefinidos").modal('show');
+        });
+
+    //Eventos de botones de la aplicacion
+
+        $('#BotonAgregar').click(function(){
+          $('#BotonModifEventPre').hide(); 
+          $('#BotonModifEventPreRel').hide(); 
+          let registro = limpiarFormulario();
+          $('#FormularioEventosPredefinidos').modal('show');
+        });
+
+        /* */
+        $('#BotonModifEventPre').click(function(){
+            let registro = recuperarDatosFormulario();
+          if (confirm("MODIFICARAS EL EVENTO "+registro.titulo+"!!!")) {
+          modificarRegistro(registro);
+          $('#FormularioEventosPredefinidos').modal('hide');
+        }else{$('#FormularioEventosPredefinidos').modal('hide');}
+        });
+        
+        /* */
+        $('#BotonModifEventPreRel').click(function(){
+            let registro = recuperarDatosFormulario();
+          if (confirm("MENOS FECHA!!! MODIFICARAS EL EVENTO "+registro.oldtitle+" Y LOS RELACIONADOS EN EL CALENDARIO!!!")) {
+          modificarRegistroRel(registro);
+          $('#FormularioEventosPredefinidos').modal('hide');
+        }else{$('#FormularioEventosPredefinidos').modal('hide');}
+        });
+        
+        $('#BotonConfirmarAgregar').click(function(){
+          let registro = recuperarDatosFormulario();
+          agregarRegistro(registro);
+          $('#FormularioEventosPredefinidos').modal('hide');
+        });
+
+        $('#BotonSalir').click(function(){
+          window.location = "index.php";
+        });
+
+    //funciones para comunicarse con el server via AJAX
+
+        function agregarRegistro(registro) {
+          $.ajax({
+            type: 'POST',
+            url: 'datoseventospredefinidos.php?accion=agregar',
+            data: registro,
+            success: function(msg){
+              tabla1.ajax.reload();
+            },
+            error: function(error){
+              alert("ERROR AL AGREGAR EVENTO: " + error);
+            }
+          });
+        }
+
+        function borrarRegistro(registro) {
+          $.ajax({
+            type: 'POST',
+            url: 'datoseventospredefinidos.php?accion=borrar',
+            data: registro,
+            success: function(msg){
+              tabla1.ajax.reload();
+            },
+            error: function(error){
+              alert("ERROR AL BORRAR EL EVENTO: " + error);
+            }
+          });
+        }
+
+        function borrarRegistroRel(registro) {
+          $.ajax({
+            type: 'POST',
+            url: 'datoseventospredefinidos.php?accion=borrarRel&titulo='+registro.titulo,
+            data: registro,
+            success: function(msg){
+              tabla1.ajax.reload();
+            },
+            error: function(error){
+              alert("ERROR AL BORRAR EL EVENTO: " + registro.titulo);
+            }
+          });
+        }
+
+        function recuperarRegistro(id){
+            $.ajax({
+              type: 'GET',
+              url: "datoseventospredefinidos.php?accion=consultar&id="+id,
+              data: '',
+              success: function (datos) {
+                $('#id').val(datos[0].id);
+                $('#Titulo').val(datos[0].titulo);
+                $('#OldTitulo').val(datos[0].titulo);
+                $('#HoraInicio').val(datos[0].horainicio);
+                $('#HoraFin').val(datos[0].horafin);
+                $('#ColorFondo').val(datos[0].colorfondo);
+                $('#ColorTexto').val(datos[0].colortexto);
+
+                $("#FormularioEventosPredefinidos").modal('show');
+              },
+              error: function () {
+                  alert("ERROR AL RECUPERAR LOS DATOS => ID: "+id);
+                }
+              });
+          }
+
+        function modificarRegistro(registro){
+          $.ajax({
+            type: 'POST',
+            url: 'datoseventospredefinidos.php?accion=modificar&id='+registro.id,
+            data: registro,
+            success: function(msg){
+              tabla1.ajax.reload();
+            },
+            error: function(error) {
+              alert("ERROR AL MODIFICAR ID => "+registro.id);
+              //tabla1.ajax.reload();
+            }
+            });
+          }
+
+        function modificarRegistroRel(registro){
+          $.ajax({
+            type: 'POST',
+            url: 'datoseventospredefinidos.php?accion=modificarRel&oldtitle='+registro.oldtitle,
+            data: registro,
+            success: function(msg){
+              tabla1.ajax.reload();
+            },
+            error: function(error) {
+              alert("ERROR AL MODIFICAR TITULO "+registro.oldtitle+" POR "+registro.titulo);
+              //tabla1.ajax.reload();
+            }
+            });
+          }
+
+    //funciones para el formulario de eventos
+    
+        function limpiarFormulario(){
+          id: $('#id').val(''),
+          $('#Titulo').val('');
+          $('#OldTitulo').val('');
+          $('#HoraInicio').val('');
+          $('#HoraFin').val('');
+        }
+
+        function recuperarDatosFormulario(){
+          let registro = {
+            id: $('#id').val(),
+            titulo: $('#Titulo').val(),
+            oldtitle: $('#OldTitulo').val(),
+            horainicio: $('#HoraInicio').val(),
+            horafin: $('#HoraFin').val(),
+            colorfondo: $('#ColorFondo').val(),
+            colortexto: $('#ColorTexto').val()
+          };
+          return registro;
+        }
+        
+      }); // FIN document.addEventListener(...
+
+    </script>
+
+  </body>
+</html>
